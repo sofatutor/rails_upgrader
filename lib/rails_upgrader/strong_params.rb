@@ -13,7 +13,8 @@ module RailsUpgrader
     end
 
     def already_upgraded?
-      controller_content.include?("def #{param_key}_params")
+      model_content.match(ATTR_ACCESSIBLES).nil? ||
+        controller_content.include?("def #{param_key}_params")
     end
 
     def update_controller_content!

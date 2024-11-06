@@ -46,18 +46,21 @@ module RailsUpgrader
         entity_to_upgrade = RailsUpgrader::StrongParams.new(entity)
 
         unless File.file?(entity_to_upgrade.controller_path)
-          puts "Skipping #{entity.name}"
+          puts "Skipping #{entity.name} – no controller found at #{entity_to_upgrade.controller_path}"
           next
         end
 
-        next if entity_to_upgrade.already_upgraded?
+        if entity_to_upgrade.already_upgraded?
+          puts "Skipping #{entity.name} – already upgraded"
+          next
+        end
 
         begin
+          puts "Upgrading #{entity.name}..."
           entity_to_upgrade.update_controller_content!
           entity_to_upgrade.update_model_content!
         rescue => e
-          puts e.message
-          puts e.backtrace
+          puts "#{entity.name} failed to upgrade: #{e.message}"
           next
         end
       end
