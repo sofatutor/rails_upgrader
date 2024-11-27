@@ -43,7 +43,9 @@ module RailsUpgrader
     def generate_method
       result = "  def #{param_key}_params\n"
       result += "    params.require(:#{param_key})\n"
-      result += "          .permit(#{model_content[ATTR_ACCESSIBLES, 1].strip})\n"
+
+      accessible_attributes = model_content.scan(ATTR_ACCESSIBLES).last.first
+      result += "          .permit(#{accessible_attributes.strip})\n"
 
       if entity.model.nested_attributes_options.present?
         result += "  # TODO: check nested attributes for: #{entity.model.nested_attributes_options.keys.join(', ')}\n"
@@ -66,9 +68,7 @@ module RailsUpgrader
       end
 
       def removed_attr_accessible
-        result = model_content
-        result[/(^ *# attr_accessible\s*)?#{ATTR_ACCESSIBLES}/] = ""
-        result
+        model_content.gsub(/(^ *# attr_accessible\s*)?#{ATTR_ACCESSIBLES}/, "")
       end
 
       def controller_content(path)
