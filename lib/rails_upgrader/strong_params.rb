@@ -2,8 +2,8 @@ require "active_model/naming"
 
 module RailsUpgrader
   class StrongParams
-    attr_reader :entity, :param_key, :controller_path, :model_path
-    ATTR_ACCESSIBLES = /\s+attr_accessible\s+([:]\w+[,]?\s+)+/.freeze
+    attr_reader :entity, :param_key, :controller_paths, :model_path
+    ATTR_ACCESSIBLES = /^ *attr_accessible +(:\w+,?\s*)+\n\n/
 
     def initialize(entity)
       @entity = entity
@@ -49,7 +49,7 @@ module RailsUpgrader
       if entity.model.nested_attributes_options.present?
         result += "  # TODO: check nested attributes for: #{entity.model.nested_attributes_options.keys.join(', ')}\n"
       end
-      result += "  end\n\n"
+      result += "  end\n"
       result
     end
 
@@ -68,7 +68,7 @@ module RailsUpgrader
 
       def removed_attr_accessible
         result = model_content
-        result[ATTR_ACCESSIBLES] = "\n"
+        result[/(^ *# attr_accessible\s*)?#{ATTR_ACCESSIBLES}/] = ""
         result
       end
 
