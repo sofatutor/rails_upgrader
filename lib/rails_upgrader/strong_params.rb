@@ -12,8 +12,9 @@ module RailsUpgrader
           (?:  # comma with optional comment
             , (?: \ * \# .* )? \s*
           )?
-        )+
+        )++
       )
+      (?! as: )  # no support for roles yet
       (?: \ * \# .* )?  # optional final comment
       \n+
     }x
