@@ -48,7 +48,7 @@ module RailsUpgrader
         entity_to_upgrade = RailsUpgrader::StrongParams.new(entity)
 
         if entity_to_upgrade.controller_paths.empty?
-          puts "Skipping #{entity.name} – no controller found at #{entity_to_upgrade.controller_path}"
+          puts "Skipping #{entity.name} – no controller found in app/controllers"
           next
         end
 
