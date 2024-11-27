@@ -17,8 +17,7 @@ module RailsUpgrader
     end
 
     def already_upgraded?
-      model_content.match(ATTR_ACCESSIBLES).nil? ||
-        controller_paths.all? { |path| controller_content(path).include?("def #{param_key}_params") }
+      model_content.match(ATTR_ACCESSIBLES).nil?
     end
 
     def update_controller_content!
