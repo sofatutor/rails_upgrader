@@ -8,24 +8,28 @@ module RailsUpgrader
     def initialize(entity)
       @entity = entity
       @param_key = ActiveModel::Naming.param_key(entity.model)
-      @controller_path = "app/controllers/#{param_key}s_controller.rb"
+      @controller_paths = find_controllers
       @model_path = "app/models/#{param_key}.rb"
     end
 
     def already_upgraded?
       model_content.match(ATTR_ACCESSIBLES).nil? ||
-        controller_content.include?("def #{param_key}_params")
+        controller_paths.all? { |path| controller_content(path).include?("def #{param_key}_params") }
     end
 
     def update_controller_content!
-      updated_content = appended_strong_params
+      for path in controller_paths
+        puts "- Adding strong params to #{path}..."
+        updated_content = appended_strong_params(path)
 
-      File.open(controller_path, 'wb') do |file|
+        File.open(path, 'wb') do |file|
         file.write(updated_content)
+        end
       end
     end
 
     def update_model_content!
+      puts "- Removing attr_accessible from #{model_path}..."
       updated_content = removed_attr_accessible
 
       File.open(model_path, 'wb') do |file|
@@ -51,9 +55,13 @@ module RailsUpgrader
 
     private
 
-      def appended_strong_params
-        result = controller_content
-        last_end = controller_content.rindex("end")
+      def find_controllers
+        Dir.glob("app/controllers/**/#{param_key.pluralize}_controller.rb")
+      end
+
+      def appended_strong_params(path)
+        result = controller_content(path)
+        last_end = result.rindex("end")
         result[last_end..last_end+3] = "\n#{generate_method}end\n"
         result
       end
@@ -64,8 +72,8 @@ module RailsUpgrader
         result
       end
 
-      def controller_content
-        File.read(controller_path)
+      def controller_content(path)
+        File.read(path)
       end
 
       def model_content
