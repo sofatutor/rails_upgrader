@@ -35,7 +35,7 @@ module RailsUpgrader
 
     def update_controller_content!
       for path in controller_paths
-        puts "- Adding strong params to #{path}..."
+        puts "- Adding strong params to #{path}"
         updated_content = appended_strong_params(path)
 
         File.open(path, 'wb') do |file|
@@ -45,7 +45,7 @@ module RailsUpgrader
     end
 
     def update_model_content!
-      puts "- Removing attr_accessible from #{model_path}..."
+      puts "- Removing attr_accessible from #{model_path}"
       updated_content = removed_attr_accessible
 
       File.open(model_path, 'wb') do |file|

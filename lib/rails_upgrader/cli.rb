@@ -18,6 +18,7 @@ module RailsUpgrader
 
     def upgrade(model_names)
       puts "Upgrading Rails..."
+      puts
       upgrade_strong_params!(model_names)
       puts "Rails is upgraded!"
     end
@@ -49,14 +50,23 @@ module RailsUpgrader
         next unless entity_to_upgrade.exists?
 
         if entity_to_upgrade.already_upgraded?
-          puts "Skipping #{entity.name} – already upgraded"
+          puts "# Skipping #{entity.name} – already upgraded"
+          puts
           next
         end
 
         begin
           puts "Upgrading #{entity.name}..."
-          entity_to_upgrade.update_controller_content!
+
+          if entity_to_upgrade.controller_paths.empty?
+            puts "? No controller found for #{entity.name}! Here's the strong params method:"
+            puts entity_to_upgrade.generate_method
+          else
+            entity_to_upgrade.update_controller_content!
+          end
+
           entity_to_upgrade.update_model_content!
+          puts
         rescue => e
           puts "#{entity.name} failed to upgrade: #{e.message}"
           next
