@@ -12,6 +12,10 @@ module RailsUpgrader
       @model_path = "app/models/#{param_key}.rb"
     end
 
+    def exists?
+      File.exist?(model_path)
+    end
+
     def already_upgraded?
       model_content.match(ATTR_ACCESSIBLES).nil? ||
         controller_paths.all? { |path| controller_content(path).include?("def #{param_key}_params") }
