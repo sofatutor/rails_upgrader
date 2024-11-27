@@ -3,7 +3,7 @@ require "active_model/naming"
 module RailsUpgrader
   class StrongParams
     attr_reader :entity, :param_key, :controller_paths, :model_path
-    ATTR_ACCESSIBLES = /^ *attr_accessible +(:\w+,?\s*)+\n\n/
+    ATTR_ACCESSIBLES = /^ *attr_accessible +((?::\w+,?\s*)+)\n\n/
 
     def initialize(entity)
       @entity = entity
@@ -23,7 +23,7 @@ module RailsUpgrader
         updated_content = appended_strong_params(path)
 
         File.open(path, 'wb') do |file|
-        file.write(updated_content)
+          file.write(updated_content)
         end
       end
     end
@@ -40,11 +40,7 @@ module RailsUpgrader
     def generate_method
       result = "  def #{param_key}_params\n"
       result += "    params.require(:#{param_key})\n"
-
-      param_list = entity.attributes.reject do |attribute|
-        attribute.to_s =~ /^id$|^type$|^created_at$|^updated_at$|_token$|_count$/
-      end.map { |attribute| ":#{attribute}" }.join(", ")
-      result += "          .permit(#{param_list})\n"
+      result += "          .permit(#{model_content[ATTR_ACCESSIBLES, 1].strip})\n"
 
       if entity.model.nested_attributes_options.present?
         result += "  # TODO: check nested attributes for: #{entity.model.nested_attributes_options.keys.join(', ')}\n"
@@ -77,7 +73,7 @@ module RailsUpgrader
       end
 
       def model_content
-        File.read(model_path)
+        @model_content ||= File.read(model_path)
       end
   end
 end
