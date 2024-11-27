@@ -6,8 +6,8 @@ module RailsUpgrader
   class CLI
     attr_reader :domain
 
-    def self.call
-      new.upgrade
+    def self.call(model_name)
+      new.upgrade(model_name.classify)
     end
 
     def initialize
@@ -16,9 +16,9 @@ module RailsUpgrader
       @domain = RailsERD::Domain.generate
     end
 
-    def upgrade
+    def upgrade(model_name)
       puts "Upgrading Rails..."
-      upgrade_strong_params!
+      upgrade_strong_params!(model_name)
       puts "Rails is upgraded!"
     end
 
@@ -40,9 +40,11 @@ module RailsUpgrader
       end
     end
 
-    def upgrade_strong_params!
+    def upgrade_strong_params!(model_name)
       domain.entities.each do |entity|
         next unless entity.model
+        next if model_name && entity.name != model_name
+
         entity_to_upgrade = RailsUpgrader::StrongParams.new(entity)
 
         unless File.file?(entity_to_upgrade.controller_path)
