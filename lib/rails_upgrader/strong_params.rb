@@ -3,7 +3,20 @@ require "active_model/naming"
 module RailsUpgrader
   class StrongParams
     attr_reader :entity, :param_key, :controller_paths, :model_path
-    ATTR_ACCESSIBLES = /^ *attr_accessible +((?::\w+,?\s*)+)\n\n/
+    ATTR_ACCESSIBLES = %r{
+      ^
+      \ * attr_accessible \ +
+      (  # attributes
+        (?:
+          : \w+
+          (?:  # comma with optional comment
+            , (?: \ * \# .* )? \s*
+          )?
+        )+
+      )
+      (?: \ * \# .* )?  # optional final comment
+      \n+
+    }x
 
     def initialize(entity)
       @entity = entity
