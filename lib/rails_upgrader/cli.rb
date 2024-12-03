@@ -6,8 +6,8 @@ module RailsUpgrader
   class CLI
     attr_reader :domain
 
-    def self.call
-      new.upgrade
+    def self.call(*model_names)
+      new.upgrade(model_names.map(&:classify))
     end
 
     def initialize
@@ -16,9 +16,10 @@ module RailsUpgrader
       @domain = RailsERD::Domain.generate
     end
 
-    def upgrade
+    def upgrade(model_names)
       puts "Upgrading Rails..."
-      upgrade_strong_params!
+      puts
+      upgrade_strong_params!(model_names)
       puts "Rails is upgraded!"
     end
 
@@ -40,24 +41,34 @@ module RailsUpgrader
       end
     end
 
-    def upgrade_strong_params!
+    def upgrade_strong_params!(model_names)
       domain.entities.each do |entity|
         next unless entity.model
-        entity_to_upgrade = RailsUpgrader::StrongParams.new(entity)
+        next unless model_names.empty? || model_names.include?(entity.name)
 
-        unless File.file?(entity_to_upgrade.controller_path)
-          puts "Skipping #{entity.name}"
+        entity_to_upgrade = RailsUpgrader::StrongParams.new(entity)
+        next unless entity_to_upgrade.exists?
+
+        if entity_to_upgrade.already_upgraded?
+          puts "# Skipping #{entity.name} – already upgraded"
+          puts
           next
         end
 
-        next if entity_to_upgrade.already_upgraded?
-
         begin
-          entity_to_upgrade.update_controller_content!
+          puts "Upgrading #{entity.name}..."
+
+          if entity_to_upgrade.controller_paths.empty?
+            puts "? No controller found for #{entity.name}! Here's the strong params method:"
+            puts entity_to_upgrade.generate_method
+          else
+            entity_to_upgrade.update_controller_content!
+          end
+
           entity_to_upgrade.update_model_content!
+          puts
         rescue => e
-          puts e.message
-          puts e.backtrace
+          puts "#{entity.name} failed to upgrade: #{e.message}"
           next
         end
       end
